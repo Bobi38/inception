@@ -1,0 +1,12 @@
+services:
+  dock1:
+    build: ./dock1
+    volumes:
+      - ./toto:/test
+
+  dock2:
+    build: ./dock2
+    depends_on:
+      - dock1
+    volumes:
+      - ./toto:/pin
