@@ -1,20 +1,17 @@
 FROM debian:13
 
-ENV DEBIAN_FRONTEND=noninteractive
-
 RUN apt-get update && \
-    apt-get upgrade && \
-    apt-get install -y wget && \
-    apt-get install -y git && \
-    apt-get install -y tar
+    apt-get upgrade -y && \
+    apt-get install -y mariadb-server && \
+    apt-get clean
 
+RUN mkdir -p /run/mysqld && \
+    chown -R mysql:mysql /run/mysqld
 
+COPY tvoisin.cnf /etc/mysql/mariadb.conf.d/
 
-run apt-get install apt-transport-https && \
-    mkdir -p /etc/apt/keyrings && \
-    wget -o /etc/apt/keyrings/mariadb-keyring.pgp 'https://mariadb.org/mariadb_release_signing_key.pgp' && \
-    apt-get install mariadb-server -y
+COPY go.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/go.sh
 
-RUN rm /etc/mysql/my.cnf
+ENTRYPOINT ["/usr/local/bin/go.sh"]
 
-CMD ["mariadb"]
