@@ -15,3 +15,5 @@ RUN chmod +x /usr/local/bin/go.sh
 
 ENTRYPOINT ["/usr/local/bin/go.sh"]
 
+CMD ["mariadbd"]
+
