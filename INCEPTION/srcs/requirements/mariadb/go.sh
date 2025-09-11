@@ -1,27 +1,40 @@
 #!/bin/bash
 set -e
 
+# Récupérer les variables de secrets
 export SQL_ROOT_PASSWORD=$(cat /run/secrets/mysql_root_password)
 
-chgrp -R mysql /var/lib/mysql
-chmod -R g+rwx /var/lib/mysql
+echo "[INFO] SQL_ROOT_PASSWORD chargé."
 
-mysql_install_db
+# Droits nécessaires sur les dossiers
+mkdir -p /run/mysqld
+chown -R mysql:mysql /var/lib/mysql /run/mysqld
 
-service mariadb start
+# Initialiser la base si elle n'existe pas encore
+if [ ! -d /var/lib/mysql/mysql ]; then
+    echo "[INFO] Initialisation de MariaDB..."
+    mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql > /dev/null
 
-mariadbd --bootstrap --skip-networking=0 <<-EOSQL
-CREATE DATABASE IF NOT EXISTS $SQL_DATABASE;
-CREATE USER IF NOT EXISTS $SQL_USER@'localhost' IDENTIFIED BY "$($SQL_PASSWORD)";
-GRANT ALL PRIVILEGES ON $SQL_DATABASE.* TO $SQL_USER@'%' IDENTIFIED BY "$($SQL_PASSWORD)";
-SET PASSWORD FOR 'root'@'localhost' = PASSWORD("$($SQL_ROOT_PASSWORD)");
-FLUSH PRIVILEGES;
+    echo "[INFO] Configuration de la base initiale..."
+    mysqld --user=mysql --bootstrap <<-EOSQL
+    CREATE DATABASE IF NOT EXISTS \`${SQL_DATABASE}\`;
+    
+    CREATE USER IF NOT EXISTS '${SQL_USER}'@'%' IDENTIFIED BY '${SQL_PASSWORD}';
+    
+    GRANT ALL PRIVILEGES ON \`${SQL_DATABASE}\`.* TO '${SQL_USER}'@'%' IDENTIFIED BY '${SQL_PASSWORD}' WITH GRANT OPTION;
+
+    ALTER USER 'root'@'localhost' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';
+    ALTER USER 'root'@'%' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';
+
+    FLUSH PRIVILEGES;
 EOSQL
 
     echo "[INFO] Initialisation terminée."
-    service mariadb stop
+else
+    echo "[INFO] Base de données déjà initialisée."
 fi
 
+# Lancer le serveur MariaDB
 echo "[INFO] Démarrage normal de MariaDB..."
 exec "$@"
 
