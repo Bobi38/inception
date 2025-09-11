@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Attendre que MariaDB soit prêt
+Attendre que MariaDB soit prêt
 echo "⏳ Attente de MariaDB..."
 until nc -z mariadb-toto 3306; do
     echo "MariaDB pas encore prêt, attente..."
@@ -8,6 +8,10 @@ until nc -z mariadb-toto 3306; do
 done
 echo "✅ MariaDB détecté !"
 
+
+echo $SQL_DATABASE
+echo $SQL_PASSWORD
+echo $SQL_USER
 # Attendre un peu plus pour être sûr que MariaDB est initialisé
 sleep 10
 
