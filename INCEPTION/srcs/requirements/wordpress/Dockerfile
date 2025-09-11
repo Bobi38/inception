@@ -3,6 +3,7 @@ FROM debian:13
 RUN apt-get update \
     && apt-get install -y curl \
     && apt-get install -y unzip \
+    && apt-get install -y netcat-openbsd \
     && apt-get install -y mariadb-client \
     && apt-get install -y php-mysql php-curl \
     && apt-get install -y php8.4-fpm \

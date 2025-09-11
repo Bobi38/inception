@@ -10,7 +10,7 @@ prune:
 	docker system prune -af --volumes
 
 volumes:
-	docker volume rm $$(docker volume ls -q)
+	docker volume rm $$(docker volume ls -q) 2>/dev/null || true
 
 rmi:
 	docker container rm -f $$(docker ps -aq) 2>/dev/null || true
@@ -19,7 +19,6 @@ rmi:
 clean:	down
 	$(MAKE) prune
 	$(MAKE) rmi
-	$(MAKE) volumes
 
 secrets:
 	@mkdir -p secrets
@@ -33,5 +32,6 @@ fclean: clean
 	rm -r secrets
 
 re: fclean all
+
 
 .PHONY: all compose down prune rmi volumes clean secrets fclean re
