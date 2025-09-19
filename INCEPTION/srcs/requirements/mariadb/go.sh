@@ -1,37 +1,38 @@
 #!/bin/bash
+
 set -e
 
+# Lire le mot de passe root depuis un secret Docker
 export SQL_ROOT_PASSWORD=$(cat /run/secrets/mysql_root_password)
 
-echo $SQL_PASSWORD
-
-echo "[INFO] SQL_ROOT_PASSWORD chargé."
-
+# Préparer les répertoires
 mkdir -p /run/mysqld
 chown -R mysql:mysql /var/lib/mysql /run/mysqld
 
+# Initialisation de la base de données si vide
 if [ ! -d /var/lib/mysql/mysql ]; then
-    echo "[INFO] Initialisation de MariaDB..."
+    echo "[DEBUG] 📦 Initialisation de MariaDB..."
     mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql > /dev/null
 
-    echo "[INFO] Configuration de la base initiale..."
-    mysqld --user=mysql --bootstrap <<-EOSQL
-        CREATE DATABASE IF NOT EXISTS \`${SQL_DATABASE}\`;
-        CREATE USER IF NOT EXISTS '${SQL_USER}'@'%' IDENTIFIED BY '${SQL_PASSWORD}';
-        GRANT ALL PRIVILEGES ON \`${SQL_DATABASE}\`.* TO '${SQL_USER}'@'%' IDENTIFIED BY '${SQL_PASSWORD}' WITH GRANT OPTION;
-        ALTER USER 'root'@'localhost' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';
-        ALTER USER 'root'@'%' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';
+    echo "[DEBUG] 🚀 Démarrage temporaire de MariaDB..."
+    mysqld_safe --nowatch --datadir=/var/lib/mysql &
+    sleep 5
 
-        FLUSH PRIVILEGES;
-EOSQL
+    echo "[DEBUG] 🛠️ Création base + utilisateur..."
+    mysql -u root <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED BY '$SQL_ROOT_PASSWORD';
+CREATE DATABASE IF NOT EXISTS $SQL_DATABASE;
+CREATE USER IF NOT EXISTS '$SQL_USER'@'%' IDENTIFIED BY '$SQL_PASSWORD';
+GRANT ALL PRIVILEGES ON $SQL_DATABASE.* TO '$SQL_USER'@'%';
+FLUSH PRIVILEGES;
+EOF
 
-    echo "[INFO] Initialisation terminée."
+    echo "[DEBUG] ✅ Initialisation terminée."
+    mysqladmin -u root -p"$SQL_ROOT_PASSWORD" shutdown
 else
-    echo "[INFO] Base de données déjà initialisée."
+    echo "[DEBUG] ✅ Base de données déjà initialisée."
 fi
 
-# Lancer le serveur MariaDB
-echo "[INFO] Démarrage normal de MariaDB..."
+# Démarrer MariaDB en mode normal
+echo "[DEBUG] 🚀 Lancement de MariaDB..."
 exec "$@"
-
-
