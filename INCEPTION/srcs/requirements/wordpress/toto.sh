@@ -1,20 +1,17 @@
 #!/bin/bash
 set -e
 
-# Attendre que MariaDB soit prêt
-echo "⏳ Attente de MariaDB..."
-until nc -z mariadb-toto 3306; do
-    echo "MariaDB pas encore prêt, attente..."
-    sleep 3
-done
-echo "✅ MariaDB détecté !"
+# # Attendre que MariaDB soit prêt
+# echo "⏳ Attente de MariaDB..."
+# until nc -z mariadb-toto 3306; do
+#     echo "MariaDB pas encore prêt, attente..."
+#     sleep 3
+# done
+# echo "✅ MariaDB détecté !"
 
-# Afficher les variables pour debug
-echo "[DEBUG] SQL_DATABASE=$SQL_DATABASE"
-echo "[DEBUG] SQL_USER=$SQL_USER"
-echo "[DEBUG] SQL_PASSWORD=$SQL_PASSWORD"
+# sleep 5  # Pour s'assurer que la DB est bien initialisée
 
-sleep 5  # Pour s'assurer que la DB est bien initialisée
+sleep 10
 
 # Installer WP-CLI si nécessaire
 if ! command -v wp >/dev/null 2>&1; then

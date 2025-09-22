@@ -19,7 +19,7 @@ if [ ! -d /var/lib/mysql/mysql ]; then
     sleep 5
 
     echo "[DEBUG] 🛠️ Création base + utilisateur..."
-    mysql -u root <<EOF
+    mysql -u root -p <<EOF
 ALTER USER 'root'@'localhost' IDENTIFIED BY '$SQL_ROOT_PASSWORD';
 CREATE DATABASE IF NOT EXISTS $SQL_DATABASE;
 CREATE USER IF NOT EXISTS '$SQL_USER'@'%' IDENTIFIED BY '$SQL_PASSWORD';
