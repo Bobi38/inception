@@ -24,6 +24,7 @@ secrets:
 	@mkdir -p secrets
 	openssl rand -hex 6 > secrets/mysql_root_password
 	openssl rand -hex 6 > secrets/wordpress_db_password
+	openssl rand -hex 6 > secrets/wordpress_admin_password
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout secrets/nginx.key -out secrets/nginx.crt -subj "/CN=tvoisin.42.fr"
 
 fclean: clean

@@ -12,7 +12,6 @@ RUN apt-get update \
         php8.4-curl \
         php8.4-xml \
         php8.4-mbstring \
-        sendmail \
         php8.4-cli \
     && apt-get clean
 

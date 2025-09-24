@@ -1,11 +1,14 @@
 #!/bin/bash
 
+export SQL_PASSWORD=$(cat /run/secrets/wordpress_db_password)
+export WP_ADMIN_PASS=$(cat /run/secrets/wordpress_admin_password)
+
 echo "⏳ Attente de MariaDB..."
 until nc -z mariadb-toto 3306; do
     echo "MariaDB pas encore prêt, attente..."
     sleep 3
 done
-echo "✅ MariaDB détecté !"
+echo "MariaDB détecté !"
 
 # until mysql -h mariadb-toto -u "$SQL_USER" -p"$SQL_PASSWORD" "$SQL_DATABASE" -e "SELECT 1;" > /dev/null 2>&1; do
 #     echo "⏳ En attente que l'utilisateur soit reconnu par MariaDB..."

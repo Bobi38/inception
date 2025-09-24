@@ -2,6 +2,7 @@
 set -e
 
 export SQL_ROOT_PASSWORD=$(cat /run/secrets/mysql_root_password)
+export SQL_PASSWORD=$(cat /run/secrets/wordpress_db_password)
 
 mkdir -p /run/mysqld
 chown -R mysql:mysql /var/lib/mysql /run/mysqld
@@ -11,7 +12,6 @@ if [ ! -d /var/lib/mysql/mysql ]; then
   mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql > /dev/null
 fi
 
-echo "Démarrage MariaDB temporaire..."
 mariadbd-safe --nowatch --datadir=/var/lib/mysql &
 
 echo "Attente de MariaDB..."
@@ -33,7 +33,6 @@ EOF
 
 touch /var/lib/mysql/toto
 fi
-echo "Arrêt du serveur temporaire..."
 mysqladmin -u root -p"$SQL_ROOT_PASSWORD" shutdown
 
 echo "Démarrage normal MariaDB..."

@@ -12,6 +12,7 @@ services:
     secrets:
       - wordpress_db_password
       - mysql_root_password
+      - wordpress_admin_password
     volumes:
       - wordpress_data:/var/www/html
 
@@ -46,9 +47,7 @@ services:
         target: nginx.key
     volumes:
       - ./requirements/nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - wordpress_data:/var/www/html 
-      - ../secrets/nginx.crt:/run/secrets/nginx.crt:ro
-      - ../secrets/nginx.key:/run/secrets/nginx.key:ro
+      - wordpress_data:/var/www/html
 
 secrets:
   mysql_root_password:
@@ -59,6 +58,8 @@ secrets:
     file: ../secrets/nginx.crt
   nginx_key:
     file: ../secrets/nginx.key
+  wordpress_admin_password:
+    file: ../secrets/wordpress_admin_password
 
 networks:
   home:
