@@ -30,6 +30,7 @@ fclean: clean
 	docker volume prune -f
 	docker network prune -f
 	rm -r secrets
+	$(MAKE) volumes
 
 re: fclean all
 

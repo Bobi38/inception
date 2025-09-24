@@ -1,38 +1,40 @@
 #!/bin/bash
-
 set -e
 
-# Lire le mot de passe root depuis un secret Docker
 export SQL_ROOT_PASSWORD=$(cat /run/secrets/mysql_root_password)
 
-# Préparer les répertoires
 mkdir -p /run/mysqld
 chown -R mysql:mysql /var/lib/mysql /run/mysqld
 
-# Initialisation de la base de données si vide
 if [ ! -d /var/lib/mysql/mysql ]; then
-    echo "[DEBUG] 📦 Initialisation de MariaDB..."
-    mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql > /dev/null
-
-    echo "[DEBUG] 🚀 Démarrage temporaire de MariaDB..."
-    mysqld_safe --nowatch --datadir=/var/lib/mysql &
-    sleep 5
-
-    echo "[DEBUG] 🛠️ Création base + utilisateur..."
-    mysql -u root -p <<EOF
-ALTER USER 'root'@'localhost' IDENTIFIED BY '$SQL_ROOT_PASSWORD';
-CREATE DATABASE IF NOT EXISTS $SQL_DATABASE;
-CREATE USER IF NOT EXISTS '$SQL_USER'@'%' IDENTIFIED BY '$SQL_PASSWORD';
-GRANT ALL PRIVILEGES ON $SQL_DATABASE.* TO '$SQL_USER'@'%';
-FLUSH PRIVILEGES;
-EOF
-
-    echo "[DEBUG] ✅ Initialisation terminée."
-    mysqladmin -u root -p"$SQL_ROOT_PASSWORD" shutdown
-else
-    echo "[DEBUG] ✅ Base de données déjà initialisée."
+  echo "Initialisation de MariaDB..."
+  mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql > /dev/null
 fi
 
-# Démarrer MariaDB en mode normal
-echo "[DEBUG] 🚀 Lancement de MariaDB..."
+echo "Démarrage MariaDB temporaire..."
+mariadbd-safe --nowatch --datadir=/var/lib/mysql &
+
+echo "Attente de MariaDB..."
+until mysqladmin ping --silent; do
+  sleep 1
+done
+
+if [ ! -f /var/lib/mysql/toto ]; then
+echo "Création ou mise à jour de la base et user MySQL..."
+mysql -u root <<EOF
+CREATE DATABASE IF NOT EXISTS $SQL_DATABASE;
+DROP USER IF EXISTS '$SQL_USER'@'%';
+CREATE USER '$SQL_USER'@'%' IDENTIFIED BY '$SQL_PASSWORD';
+GRANT ALL PRIVILEGES ON $SQL_DATABASE.* TO '$SQL_USER'@'%';
+ALTER USER 'root'@'localhost' IDENTIFIED BY '$SQL_ROOT_PASSWORD';
+FLUSH PRIVILEGES;
+exit
+EOF
+
+touch /var/lib/mysql/toto
+fi
+echo "Arrêt du serveur temporaire..."
+mysqladmin -u root -p"$SQL_ROOT_PASSWORD" shutdown
+
+echo "Démarrage normal MariaDB..."
 exec "$@"
