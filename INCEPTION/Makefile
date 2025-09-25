@@ -11,6 +11,7 @@ prune:
 
 volumes:
 	docker volume rm $$(docker volume ls -q) 2>/dev/null || true
+	sudo rm -r /home/tvoisin/data
 
 rmi:
 	docker container rm -f $$(docker ps -aq) 2>/dev/null || true
@@ -22,9 +23,10 @@ clean:	down
 
 secrets:
 	@mkdir -p secrets
-	openssl rand -hex 6 > secrets/mysql_root_password
-	openssl rand -hex 6 > secrets/wordpress_db_password
-	openssl rand -hex 6 > secrets/wordpress_admin_password
+	openssl rand -hex 4 > secrets/mysql_root_password
+	openssl rand -hex 4 > secrets/wordpress_db_password
+	openssl rand -hex 4 > secrets/wordpress_admin_password
+	openssl rand -hex 4 > secrets/wordpress_user_password
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout secrets/nginx.key -out secrets/nginx.crt -subj "/CN=tvoisin.42.fr"
 
 fclean: clean

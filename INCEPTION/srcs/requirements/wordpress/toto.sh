@@ -2,6 +2,7 @@
 
 export SQL_PASSWORD=$(cat /run/secrets/wordpress_db_password)
 export WP_ADMIN_PASS=$(cat /run/secrets/wordpress_admin_password)
+export WP_USER_PASS=$(cat /run/secrets/wordpress_user_password)
 
 echo "⏳ Attente de MariaDB..."
 until nc -z mariadb-toto 3306; do
@@ -10,10 +11,6 @@ until nc -z mariadb-toto 3306; do
 done
 echo "MariaDB détecté !"
 
-# until mysql -h mariadb-toto -u "$SQL_USER" -p"$SQL_PASSWORD" "$SQL_DATABASE" -e "SELECT 1;" > /dev/null 2>&1; do
-#     echo "⏳ En attente que l'utilisateur soit reconnu par MariaDB..."
-#     sleep 2
-# done
 
 echo "✅ Connexion MySQL avec $SQL_USER réussie !"
 if [ ! -f /var/www/html/wp-cli.phar ]; then
@@ -33,7 +30,7 @@ wp core download --locale=en_GB --allow-root
 
 if [ ! -f /var/www/html/wp-config.php ]; then
 echo "CONGIG wp-config.php..."
-wp config create --allow-root --dbname="$SQL_DATABASE" --dbuser="$SQL_USER" --dbpass="$SQL_PASSWORD" --dbhost=mariadb-toto
+wp config create --allow-root --dbname="$SQL_DATABASE" --dbuser="$SQL_USER" --dbpass="$SQL_PASSWORD" --dbhost="$WORDPRESS_DB_HOST"
 else
     echo "----- wp-config existe deja --------"
 fi
@@ -47,7 +44,7 @@ fi
 
 if ! wp user list --field=user_login --allow-root | grep -q "^$WP_USER$"; then
 echo "👤CREER USER..."
-wp user create --allow-root "$WP_USER" "$WP_EMAIL" --user_pass="$WP_PASS"
+wp user create --allow-root "$WP_USER" "$WP_EMAIL" --user_pass="$WP_USER_PASS"
 else
     echo "------- le user a deja ete crée ------"
 fi
@@ -55,5 +52,4 @@ fi
 chown -R www-data:www-data /var/www/html/wp-content/
 
 
-echo "🎯 Démarrage du serveur web..."
 exec "$@"
